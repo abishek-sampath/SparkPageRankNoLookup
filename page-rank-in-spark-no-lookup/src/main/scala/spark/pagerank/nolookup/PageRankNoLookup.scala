@@ -57,20 +57,22 @@ object PageRankNoLookup {
       // - reduceBy key to get aggregate PR for each m
       val tempRanks = graph.join(ranks)
           .flatMap {
-            case (v, (adjList, pr)) => adjList.map(dest => (dest, pr / adjList.size)).++(Iterable[(Long, Double)](v, 0.0))
+            case (v, (adjList, pr)) => adjList.map(dest => (dest, pr / adjList.size)).++(Iterable[(Long, Double)]((v, 0.0)))
           }
           .reduceByKey((x,y) => x + y)
 
       // filter out the dangling mass
       val danglingRank = tempRanks.filter{
         case (v,pr) => v == dummyVertex
-      }.map(_._2)
+      }.map {
+        case (v,dr) => dr / (k*k)
+      }
 
       // distribute
       ranks = tempRanks.cartesian(danglingRank).map {
         case ((v, pr), danglingPR) =>
           if (v == dummyVertex)
-            (v, 0.0)
+            (v, pr)
           else
             (v, pr + danglingPR)
       }
