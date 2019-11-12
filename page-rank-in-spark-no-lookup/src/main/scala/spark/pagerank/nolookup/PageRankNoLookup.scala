@@ -75,7 +75,7 @@ object PageRankNoLookup {
             (v, pr)
           else
             (v, pr + danglingPR)
-      }
+      }.cache()
     }
 
     println("----------------------------------------------")
